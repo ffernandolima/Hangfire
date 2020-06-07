@@ -73,11 +73,13 @@ namespace Hangfire.SqlServer.Tests
                 var id = CreateJobQueueRecord(sql, "1", "default", FetchedAt);
                 using (var processingJob = new SqlServerTimeoutJob(storage, id, "1", "default", FetchedAt))
                 {
+                    processingJob.DisposeTimer();
+
                     // Act
                     processingJob.RemoveFromQueue();
 
                     // Assert
-                    var count = sql.Query<int>("select count(*) from HangFire.JobQueue").Single();
+                    var count = sql.Query<int>($"select count(*) from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Equal(0, count);
                 }
             });
@@ -95,11 +97,13 @@ namespace Hangfire.SqlServer.Tests
 
                 using (var fetchedJob = new SqlServerTimeoutJob(storage, 999, "1", "default", FetchedAt))
                 {
+                    fetchedJob.DisposeTimer();
+
                     // Act
                     fetchedJob.RemoveFromQueue();
 
                     // Assert
-                    var count = sql.Query<int>("select count(*) from HangFire.JobQueue").Single();
+                    var count = sql.Query<int>($"select count(*) from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Equal(3, count);
                 }
             });
@@ -114,11 +118,13 @@ namespace Hangfire.SqlServer.Tests
                 var id = CreateJobQueueRecord(sql, "1", "default", FetchedAt);
                 using (var processingJob = new SqlServerTimeoutJob(storage, id, "1", "default", FetchedAt))
                 {
+                    processingJob.DisposeTimer();
+
                     // Act
                     processingJob.Requeue();
 
                     // Assert
-                    var record = sql.Query("select * from HangFire.JobQueue").Single();
+                    var record = sql.Query($"select * from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Null(record.FetchedAt);
                 }
             });
@@ -134,8 +140,9 @@ namespace Hangfire.SqlServer.Tests
                 using (var processingJob = new SqlServerTimeoutJob(storage, id, "1", "default", FetchedAt))
                 {
                     Thread.Sleep(TimeSpan.FromSeconds(10));
+                    processingJob.DisposeTimer();
 
-                    var record = sql.Query("select * from HangFire.JobQueue").Single();
+                    var record = sql.Query($"select * from [{Constants.DefaultSchema}].JobQueue").Single();
 
                     Assert.NotNull(processingJob.FetchedAt);
                     Assert.Equal<DateTime?>(processingJob.FetchedAt, record.FetchedAt);
@@ -155,12 +162,13 @@ namespace Hangfire.SqlServer.Tests
                 using (var processingJob = new SqlServerTimeoutJob(storage, id, "1", "default", FetchedAt))
                 {
                     Thread.Sleep(TimeSpan.FromSeconds(10));
+                    processingJob.DisposeTimer();
 
                     // Act
                     processingJob.RemoveFromQueue();
 
                     // Assert
-                    var count = sql.Query<int>("select count(*) from HangFire.JobQueue").Single();
+                    var count = sql.Query<int>($"select count(*) from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Equal(0, count);
                 }
             });
@@ -176,12 +184,13 @@ namespace Hangfire.SqlServer.Tests
                 using (var processingJob = new SqlServerTimeoutJob(storage, id, "1", "default", FetchedAt))
                 {
                     Thread.Sleep(TimeSpan.FromSeconds(10));
+                    processingJob.DisposeTimer();
 
                     // Act
                     processingJob.Requeue();
 
                     // Assert
-                    var record = sql.Query("select * from HangFire.JobQueue").Single();
+                    var record = sql.Query($"select * from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Null(record.FetchedAt);
                 }
             });
@@ -200,7 +209,7 @@ namespace Hangfire.SqlServer.Tests
                     processingJob.Dispose();
 
                     // Assert
-                    var record = sql.Query("select * from HangFire.JobQueue").Single();
+                    var record = sql.Query($"select * from [{Constants.DefaultSchema}].JobQueue").Single();
                     Assert.Null(record.FetchedAt);
                 }
             });
@@ -208,8 +217,8 @@ namespace Hangfire.SqlServer.Tests
 
         private static int CreateJobQueueRecord(IDbConnection connection, string jobId, string queue, DateTime? fetchedAt)
         {
-            const string arrangeSql = @"
-insert into HangFire.JobQueue (JobId, Queue, FetchedAt)
+            var arrangeSql = $@"
+insert into [{Constants.DefaultSchema}].JobQueue (JobId, Queue, FetchedAt)
 values (@id, @queue, @fetchedAt);
 select scope_identity() as Id";
 
