@@ -7,9 +7,9 @@
 #   - Section names should be unique on each level.
 
 # Don't edit manually! Use `build.bat version` command instead!
-version: 1.7.1-build-0{build}
+version: 1.7.15-build-0{build}
 
-os: Visual Studio 2017
+os: Visual Studio 2019
 
 #---------------------------------#
 #    environment configuration    #
@@ -18,7 +18,7 @@ os: Visual Studio 2017
 # environment variables
 environment:
   BuildEnvironment: appveyor
-  Hangfire_SqlServer_ConnectionStringTemplate: Server=.\SQL2014;Database={0};User Id=sa;Password=Password12!
+  Hangfire_SqlServer_ConnectionStringTemplate: Server=.\SQL2017;Database={0};User Id=sa;Password=Password12!
   COVERALLS_REPO_TOKEN: 
     secure: oE4uB475V9hPzKmm+ZRP+1BacnMFOE98a/2tVeFieYJi5BbYG6X3VM+p6vKIQZdd
   COVERITY_TOKEN:
@@ -28,7 +28,7 @@ environment:
 
 # enable service required for tests
 services:
-  - mssql2014
+  - mssql2017
   - msmq
 
 pull_requests:
@@ -72,8 +72,9 @@ deploy:
       appveyor_repo_tag: true
 
   - provider: NuGet
+    skip_symbols: true
     api_key: 
-      secure: 8BQmcR1hP9MoxvrmXJKMtlRyX6LI36H9ZTU8fSEetvzMGCl1PUlXKZRUGq+GVMja
+      secure: uvwcHGQKqfNR+XJ5RzSA9yTrtMCH5HWbWLeIYVnq+9kQPYmOniTiNINd9zGBhqqi
     on:
       appveyor_repo_tag: true
 

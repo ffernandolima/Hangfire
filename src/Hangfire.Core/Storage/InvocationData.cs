@@ -87,8 +87,12 @@ namespace Hangfire.Storage
 
                 if (method == null)
                 {
+                    var parametersString = parameterTypes != null
+                        ? String.Join(", ", parameterTypes.Select(x => x.Name))
+                        : ParameterTypes ?? String.Empty;
+                    
                     throw new InvalidOperationException(
-                        $"The type `{type.FullName}` does not contain a method with signature `{Method}({String.Join(", ", parameterTypes?.Select(x => x.Name) ?? parameterTypesArray)})`");
+                        $"The type `{type.FullName}` does not contain a method with signature `{Method}({parametersString})`");
                 }
 
                 var argumentsArray = SerializationHelper.Deserialize<string[]>(Arguments);
@@ -138,7 +142,14 @@ namespace Hangfire.Storage
                     SerializationHelper.Serialize(jobPayload.Arguments));
             }
 
-            return SerializationHelper.Deserialize<InvocationData>(payload);
+            var data = SerializationHelper.Deserialize<InvocationData>(payload);
+
+            if (data.Type == null || data.Method == null)
+            {
+                data = SerializationHelper.Deserialize<InvocationData>(payload, SerializationOption.User);
+            }
+
+            return data;
         }
 
         public string SerializePayload(bool excludeArguments = false)

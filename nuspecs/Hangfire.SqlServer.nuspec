@@ -14,6 +14,63 @@
     <tags>Hangfire SqlServer SqlAzure LocalDB</tags>
     <releaseNotes>https://www.hangfire.io/blog/
 
+Please see https://docs.hangfire.io/en/latest/upgrade-guides/upgrading-to-hangfire-1.7.html to learn how to upgrade from 1.6.X.
+
+1.7.15
+• Fixed – Avoid deadlocks when using the `SetJobParameter` method without introducing issues for older schemas.
+• Fixed – Remove duplicate sorting in the `SqlServerMonitoringApi.GetJobs` method which is used by a lot of queries.
+
+1.7.14
+• Fixed – Duplicate entries in the `JobParameters` table after upgrading to version 1.7.13.
+• Fixed – Extensive retries on a method that has a retry attribute after upgrading to 1.7.13.
+• Fixed – "ArgumentException: An item with the same key has already been added. Key: RetryCount" in `SqlServerMonitoringApi`.
+
+1.7.13
+• Added – `UseIgnoreDupKeyOption` for SQL Server storage configuration (changes to [Set] and [Hash] tables required).
+• Fixed – Don't truncate too long keys silently, throw exceptions instead.
+• Fixed – Add missing null checks for methods in the `SqlServerWriteOnlyTransaction` class.
+• Fixed – Change `holdlock` hint to `xlock` in `merge` statements in transaction to prevent deadlocks.
+• Fixed – Don't rethrow "Lock request time out period exceeded" exceptions from expiration manager.
+• Fixed – Increase [Server].[Id] column's length to 200 for new installations.
+
+1.7.10
+• Changed – Use `XACT_ABORT` option for `ExpirationManager` queries.
+• Changed – Don't rely on implicit rollback when disposing transactions.
+• Fixed – `NullReferenceException` in logs thrown from `SqlInternalTransaction.Rollback` method.
+
+1.7.9
+• Changed – Implement long polling fetch for sub-second polling delays without `sp_getapplock`.
+• Fixed – Don't leak `DbConnection` instance when an exception occurs during its opening.
+• Fixed – Can not obtain connection from the pool exception after database was offline.
+• Fixed – High number of waits in SQL Server when Hangfire Servers are idle.
+
+1.7.8
+• Added – Support for Microsoft.Data.SqlClient package when using a custom connection factory (Part II).
+• Fixed – Remove `System.Data.SqlClient` dependency from `SqlCommandBatch` and `ExpirationManager`.
+
+1.7.7
+• Added – Add support for Microsoft.Data.SqlClient package when using custom connection factory (Part I).
+• Added – Add `UseFineGrainedLocks` option to avoid deadlocks in some theoretical cases.
+• Added – Add missing overload for `UseSqlServerStorage` with connection factory parameter only.
+• Added – Expose the SqlServerObjectsInstaller.GetInstallScript method (by @altso).
+• Fixed – Make command batching working on .NET Core when using System.Data.SqlClient 4.7.0 and higher.
+• Fixed – Permit dash characters (`-`) in schema names (by @kendaleiv).
+• Fixed – Escape square bracket characters in schema names.
+• Project – Add support for `netcoreapp3.0` target in Hangfire.SqlServer.Tests.
+• Project – Take schema name from constant in Hangfire.SqlServer.Tests (by @kendaleiv).
+• Project – Make Hangfire.SqlServer.Tests work on Linux in Travis CI environment.
+
+1.7.4
+• Fixed – Potential deadlocks cause by suboptimal queries when using `SlidingInvisibilityTimeout` fetching.
+• Fixed – Prevent zero delays between fetch retry attempts when lock acquisition failed without blocking.
+• Fixed – Specify float precision explicitly for the `Score` column in the `AddToSet` method.
+
+1.7.3
+• Fixed – Wrong error message in migration script, when @CurrentSchemaVersion has a NULL value (by @penenkel).
+
+1.7.2
+• Fixed – Occasional "DataException: Error parsing column" error when using blocking fetch.
+
 1.7.1
 • Changed – Use blocking fetch implementation only for sub-second polling intervals.
 • Fixed – Don't fail with an exception when can't connect to MSSQL instance during start-up.

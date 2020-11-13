@@ -61,6 +61,12 @@ namespace Hangfire.Storage
             return GetRecurringJobDtos(connection, ids);
         }
 
+        public static List<RecurringJobDto> GetRecurringJobs([NotNull] this IStorageConnection connection, IEnumerable<string> ids)
+        {
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            return GetRecurringJobDtos(connection, ids);
+        }
+
         private static List<RecurringJobDto> GetRecurringJobDtos(IStorageConnection connection, IEnumerable<string> ids)
         {
             var result = new List<RecurringJobDto>();
@@ -68,6 +74,7 @@ namespace Hangfire.Storage
             {
                 var hash = connection.GetAllEntriesFromHash($"recurring-job:{id}");
 
+                // TODO: Remove this in 2.0 (breaking change)
                 if (hash == null)
                 {
                     result.Add(new RecurringJobDto { Id = id, Removed = true });
@@ -82,8 +89,11 @@ namespace Hangfire.Storage
 
                 try
                 {
-                    var invocationData = InvocationData.DeserializePayload(hash["Job"]);
-                    dto.Job = invocationData.DeserializeJob();
+                    if (hash.TryGetValue("Job", out var payload) && !String.IsNullOrWhiteSpace(payload))
+                    {
+                        var invocationData = InvocationData.DeserializePayload(payload);
+                        dto.Job = invocationData.DeserializeJob();
+                    }
                 }
                 catch (JobLoadException ex)
                 {
@@ -124,6 +134,21 @@ namespace Hangfire.Storage
                 if (hash.ContainsKey("CreatedAt"))
                 {
                     dto.CreatedAt = JobHelper.DeserializeNullableDateTime(hash["CreatedAt"]);
+                }
+
+                if (hash.TryGetValue("Error", out var error) && !String.IsNullOrEmpty(error))
+                {
+                    dto.Error = error;
+                }
+
+                if (hash.TryGetValue("RetryAttempt", out var attemptString) &&
+                    Int32.TryParse(attemptString, out var retryAttempt))
+                {
+                    dto.RetryAttempt = retryAttempt;
+                }
+                else
+                {
+                    dto.RetryAttempt = 0;
                 }
 
                 result.Add(dto);
